@@ -30,7 +30,7 @@ You can easily use different news scraper this way:
 
 ### NewsURLFilter
 
-This tool allow you to check if an url is a news url according to known domains. You have to get the data dir. You can give a [Unshortener](https://github.com/hayj/Unshortener) from unshortener.unshortener to check also check if a shortened url (bit.ly, tinyurl.com...) are news. It use PublicSuffixList to know domains.
+This tool allow you to check if an url is a news url according to known domains. You have to get the data dir. You can give a [Unshortener](https://github.com/hayj/Unshortener) from unshortener.unshortener to also check if a shortened url (bit.ly, tinyurl.com...) are news. It use PublicSuffixList to know domains.
 
 Import it
 
