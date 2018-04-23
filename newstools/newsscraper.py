@@ -19,7 +19,7 @@ class NewsScraper():
     # goose doesn't work
     SCRAPLIB = Enum('SCRAPLIB', 'newspaper boilerpipe newsplease readability') # goose
 
-    def __init__(self, logger=None, verbose=True):
+    def __init__(self, logger=None, verbose=True): #
         self.logger = logger
         self.verbose = verbose
 
