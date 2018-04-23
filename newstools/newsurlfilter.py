@@ -20,6 +20,7 @@ class NewsURLFilter():
                  logger=None,
                  unshortener=None,
                  useUnshortener=True,
+                 unshortenerReadOnly=False,
                  websitesPattern="/*.csv",
                  excludePattern="/exclude*.txt",
                  startswithExclude="/startswith-exclude.txt"):
@@ -32,10 +33,13 @@ class NewsURLFilter():
         self.logger = logger
         self.verbose = verbose
         self.unshortener = unshortener
+        self.unshortenerReadOnly = unshortenerReadOnly
         if self.unshortener is None and useUnshortener:
             try:
-                self.unshortener = Unshortener(logger=self.logger, verbose=self.verbose)
-            except: pass
+                self.unshortener = Unshortener(logger=self.logger, verbose=self.verbose,
+                                               readOnly=self.unshortenerReadOnly)
+            except Exception as e:
+                logException(e, self, location="Unshortener init in NewsURLFilter __init__")
         if dataLocation is None:
             dataLocation = dataDir() + "/Misc/news-website-list/data"
         # We handle paths:
@@ -109,6 +113,7 @@ class NewsURLFilter():
 
 if __name__ == '__main__':
     nuf = NewsURLFilter()
+    strListToTmpFile(list(nuf.newsDomains), "newsdomains.txt")
 
 
 

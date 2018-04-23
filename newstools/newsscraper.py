@@ -17,20 +17,35 @@ from newsplease import NewsPlease
 
 class NewsScraper():
     # goose doesn't work
-    SCRAPLIB = Enum('SCRAPLIB', 'newspaper boilerpipe newsplease readability goose')
+    SCRAPLIB = Enum('SCRAPLIB', 'newspaper boilerpipe newsplease readability') # goose
 
-    def __init__(self):
-        pass
+    def __init__(self, logger=None, verbose=True):
+        self.logger = logger
+        self.verbose = verbose
 
-    def scrapAll(self, *args, **kwargs):
+    def scrapAll\
+    (
+        self,
+        *args,
+        scrapLibs=\
+        [
+            SCRAPLIB.boilerpipe,
+            SCRAPLIB.newspaper,
+        ],
+        **kwargs
+    ):
+        if scrapLibs is None:
+            scrapLibs = NewsScraper.SCRAPLIB
         scrap = {}
-        for current in NewsScraper.SCRAPLIB:
-            currentScrap = self.scrap(*args, **kwargs, scrapLib=current)
+        for current in scrapLibs:
+            currentScrap = self.scrap(*args, scrapLib=current, **kwargs)
             if currentScrap is not None:
                 scrap = {**scrap, **{current.name: currentScrap}}
         return scrap
 
     def scrap(self, html, scrapLib=SCRAPLIB.newspaper, reduce=True):
+        if html is None or html == "":
+            return None
         try:
             if scrapLib == NewsScraper.SCRAPLIB.newspaper:
                 url = ''
@@ -49,13 +64,12 @@ class NewsScraper():
                     "meta_favicon": article.meta_favicon,
                     "meta_data": article.meta_data,
                 }
-                return {scrapLib.name: result}
             elif scrapLib == NewsScraper.SCRAPLIB.boilerpipe:
                 scraper = Extractor(extractor='ArticleExtractor', html=html)
                 scrap = scraper.getText()
-                return {scrapLib.name: {"text": scrap}}
+                result = {"text": scrap}
             elif scrapLib == NewsScraper.SCRAPLIB.newsplease:
-                article = NewsPlease.from_html(self.html)
+                article = NewsPlease.from_html(html)
                 result = \
                 {
                     "authors": article.authors,
@@ -72,20 +86,21 @@ class NewsScraper():
                     "title_page": article.title_page,
                     "title_rss": article.title_rss,
                 }
-                return {scrapLib.name: result}
             elif scrapLib == NewsScraper.SCRAPLIB.readability:
-                doc = Document(self.html)
+                doc = Document(html)
                 result = \
                 {
                     "title": doc.title(),
                     "text": html2text.html2text(doc.content()),
                 }
-                if reduce:
-                    newResult = {}
-                    newResult["text"] = result["text"]
-                    newResult["title"] = result["title"]
-                    result = newResult
-                return result
+            else:
+                result = None
+            if result is not None and reduce:
+                newResult = {}
+                newResult["text"] = result["text"]
+                newResult["title"] = result["title"]
+                result = newResult
+            return result
         except Exception as e:
             logException(e, self, location="scrap(self, scrapLib=SCRAPLIB.newspaper)")
         return None

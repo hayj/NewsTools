@@ -4,7 +4,7 @@ This tool is useful to detect news URLs. It also aggregates several libraries wh
 
 ## Install
 
-	git clone git@github.com:hayj/NewsTools.git
+	git clone https://github.com/hayj/NewsTools.git
 	pip install ./NewsTools/wm-dist/*.tar.gz
 
 newspaper3k and news-please doesn't work in requirements.txt, produce `bad marshall data`
