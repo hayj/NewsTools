@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from newspaper import Article
-from datatools.json import *
+from datatools.jsonreader import *
 from datatools.url import *
 from datatools.csvreader import *
 from systemtools.file import *
@@ -19,7 +19,7 @@ class NewsScraper():
     # goose doesn't work
     SCRAPLIB = Enum('SCRAPLIB', 'newspaper boilerpipe newsplease readability') # goose
 
-    def __init__(self, logger=None, verbose=True): ##
+    def __init__(self, logger=None, verbose=True):
         self.logger = logger
         self.verbose = verbose
 

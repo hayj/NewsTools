@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from systemtools.basics import *
-from datatools.json import *
+from datatools.jsonreader import *
 from datatools.url import *
 from datatools.csvreader import *
 from systemtools.file import *
