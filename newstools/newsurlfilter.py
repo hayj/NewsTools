@@ -11,7 +11,18 @@ try:
     from unshortener.unshortener import *
 except: pass
 import random
+from newstools import config as ntConf
 
+
+def langContains(text, filter, useOr=True):
+    if filter is None or len(filter) == 0:
+        return False
+    if not useOr:
+        raise Exception("Not yet implemented!")
+    for current in filter:
+        if current in text:
+            return True
+    return False
 
 class NewsURLFilter():
     def __init__(self,
@@ -21,6 +32,7 @@ class NewsURLFilter():
                  unshortener=None,
                  useUnshortener=True,
                  unshortenerReadOnly=False,
+                 langFilter=None,
                  websitesPattern="/*.csv",
                  excludePattern="/exclude*.txt",
                  startswithExclude="/startswith-exclude.txt"):
@@ -30,6 +42,9 @@ class NewsURLFilter():
             and which are not aggregator
             and which are not in exclude*.txt
         """
+        self.langFilter = langFilter
+        if self.langFilter is None:
+            self.langFilter = ntConf.langFilter
         self.logger = logger
         self.verbose = verbose
         self.unshortener = unshortener
@@ -53,7 +68,7 @@ class NewsURLFilter():
         for filePath in allDataPaths:
             cr = CSVReader(filePath)
             for row in cr:
-                if  "lang" in row and row["lang"] == "en" and ("website_type" not in row or row["website_type"] != "aggregator"):
+                if  "lang" in row and langContains(row["lang"], self.langFilter) and ("website_type" not in row or row["website_type"] != "aggregator"):
                     currentSmartDomain = self.urlParser.getDomain(row["url"], urlLevel=URLLEVEL.SMART)
                     if currentSmartDomain is not None and currentSmartDomain != "":
                         self.newsDomains.append(currentSmartDomain)
@@ -65,7 +80,8 @@ class NewsURLFilter():
                 currentExclude = currentExclude.strip()
                 if currentExclude != "":
                     currentExclude = self.urlParser.getDomain(currentExclude, urlLevel=URLLEVEL.SMART)
-                    self.newsDomains.remove(currentExclude)
+                    if currentExclude in self.newsDomains:
+                        self.newsDomains.remove(currentExclude)
 #         strToFile(list(self.newsDomains), "/home/hayj/test.txt")
 #         exit()
         startswithExcludeTmp = fileToStrList(dataLocation + startswithExclude)
@@ -104,7 +120,7 @@ class NewsURLFilter():
         right = parsedUrl.path + parsedUrl.params + parsedUrl.query + parsedUrl.fragment
         if len(right) <= minRightPartSize:
             return False
-        if self.urlParser.isImage(url):
+        if self.urlParser.isImage(url) or self.urlParser.isDocument(url):
             return False
         smartDomain = self.urlParser.getDomain(url, urlLevel=URLLEVEL.SMART)
         return smartDomain in self.newsDomains
@@ -112,8 +128,9 @@ class NewsURLFilter():
 
 
 if __name__ == '__main__':
-    nuf = NewsURLFilter()
+    nuf = NewsURLFilter(langFilter="fr")
     strListToTmpFile(list(nuf.newsDomains), "newsdomains.txt")
+    print(nuf.isNews("http://www.businessinsider.fr/classement-salaires-nets-moyens-dans-40-pays/"))
 
 
 
