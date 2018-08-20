@@ -1,5 +1,8 @@
 # coding: utf-8
 
+import warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 from newspaper import Article
 from datatools.jsonreader import *
 from datatools.url import *
@@ -9,10 +12,10 @@ from systemtools.location import *
 from systemtools.system import *
 import random
 from enum import Enum
-from readability import Document
+# from readability import Document
 from boilerpipe.extract import Extractor
 import html2text
-from newsplease import NewsPlease
+# from newsplease import NewsPlease
 
 
 class NewsScraper():
@@ -97,8 +100,10 @@ class NewsScraper():
                 result = None
             if result is not None and reduce:
                 newResult = {}
-                newResult["text"] = result["text"]
-                newResult["title"] = result["title"]
+                if dictContains(result, "text"):
+                    newResult["text"] = result["text"]
+                if dictContains(result, "title"):
+                    newResult["title"] = result["title"]
                 result = newResult
             return result
         except Exception as e:
@@ -108,11 +113,14 @@ class NewsScraper():
 # https://github.com/grangier/python-goose/zipball/master#egg=python-goose
 
 if __name__ == '__main__':
-#     print({**None, **{"t": 1}})
-    html = fileToStr(getExecDirectory() + "/data-test/bbc-cookie.html")
-    ns = NewsScraper(html)
-#     scrap = ns.scrap(scrapLib=NewsScraper.SCRAPLIB.readability)
-    scrap = ns.scrapAll()
+    from hjwebbrowser.httpbrowser import *
+    b = HTTPBrowser(pageLoadTimeout=20)
+    html = b.get("https://fr.wikipedia.org/wiki/Grand_veneur_de_France")["html"]
+    # print({**None, **{"t": 1}})
+    # html = fileToStr(getExecDirectory() + "/data-test/bbc-cookie.html")
+    ns = NewsScraper()
+    # scrap = ns.scrap(scrapLib=NewsScraper.SCRAPLIB.readability)
+    scrap = ns.scrapAll(html)
     print(listToStr(scrap))
 
 

@@ -120,7 +120,7 @@ class NewsURLFilter():
         right = parsedUrl.path + parsedUrl.params + parsedUrl.query + parsedUrl.fragment
         if len(right) <= minRightPartSize:
             return False
-        if self.urlParser.isImage(url) or self.urlParser.isDocument(url):
+        if self.urlParser.isImage(url) or self.urlParser.isDocument(url) or self.urlParser.isMedia(url):
             return False
         smartDomain = self.urlParser.getDomain(url, urlLevel=URLLEVEL.SMART)
         return smartDomain in self.newsDomains
@@ -128,9 +128,11 @@ class NewsURLFilter():
 
 
 if __name__ == '__main__':
-    nuf = NewsURLFilter(langFilter="fr")
-    strListToTmpFile(list(nuf.newsDomains), "newsdomains.txt")
-    print(nuf.isNews("http://www.businessinsider.fr/classement-salaires-nets-moyens-dans-40-pays/"))
+    nuf = NewsURLFilter()
+    # print(nuf.isNews("http://vip.pwtorch.com/546548654984541658"))
+    # nuf = NewsURLFilter(langFilter="fr")
+    # strListToTmpFile(list(nuf.newsDomains), "newsdomains.txt")
+    # print(nuf.isNews("http://www.businessinsider.fr/classement-salaires-nets-moyens-dans-40-pays/"))
 
 
 

@@ -12,7 +12,7 @@ So you need to install it manually:
 
 	pip install https://github.com/misja/python-boilerpipe/zipball/master#egg=python-boilerpipe
 	pip install newspaper3k
-	pip install news-please
+	# pip install news-please
 
 Then you need to get data in the data dir.
 
