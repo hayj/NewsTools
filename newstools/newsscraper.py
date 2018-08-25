@@ -12,11 +12,53 @@ from systemtools.location import *
 from systemtools.system import *
 import random
 from enum import Enum
-# from readability import Document
 from boilerpipe.extract import Extractor
 import html2text
-# from newsplease import NewsPlease
+from datatools.htmltools import *
+# from newsplease import NewsPlease # To delete
+# from readability import Document # To delete
+from datastructuretools.processing import *
 
+def normalizeText(text):
+    if text is None or len(text) == 0:
+        return None
+    if text.count('<') > 5 and text.count('>') > 5:
+        text = html2Text(text)
+    text = reduceBlank(text, keepNewLines=True)
+    return text
+
+def meanLinesLength(text):
+    lines = text.split("\n")
+    theSum = 0
+    count = 0
+    for line in lines:
+        theSum += len(line)
+        count += 1
+    return theSum / count
+
+def isGoodNews(data, minTextSize=100, minMeanLineLength=8, logger=None, verbose=False):
+    try:
+        if dictContains(data, "status") and data["status"] not in \
+        [
+            "timeoutWithContent",
+            "success",
+        ]:
+            return False
+        scrap = data
+        if dictContains(scrap, "scrap"):
+            scrap = scrap["scrap"]
+        if dictContains(scrap, "boilerpipe"):
+            scrap = scrap["boilerpipe"]
+        if len(scrap["text"]) < minTextSize:
+            return False
+        if meanLinesLength(scrap["text"]) < minMeanLineLength:
+            return False
+        if dictContains(scrap, "title") and (scrap["title"] is None or len(scrap["title"]) == 0):
+            return False
+    except Exception as e:
+        logException(e, logger, verbose=verbose)
+        return False
+    return True
 
 class NewsScraper():
     # goose doesn't work
@@ -34,6 +76,8 @@ class NewsScraper():
         [
             SCRAPLIB.boilerpipe,
             SCRAPLIB.newspaper,
+            # SCRAPLIB.readability,
+            # SCRAPLIB.newsplease,
         ],
         **kwargs
     ):
@@ -45,6 +89,76 @@ class NewsScraper():
             if currentScrap is not None:
                 scrap = {**scrap, **{current.name: currentScrap}}
         return scrap
+
+    def smartScrap(self, html, winnerMinRatio=0.69, reduce=False, sentenceMinLength=30):
+        try:
+            scrap = self.scrapAll\
+            (
+                html,
+                scrapLibs=\
+                [
+                    NewsScraper.SCRAPLIB.boilerpipe,
+                    NewsScraper.SCRAPLIB.newspaper,
+                    # SCRAPLIB.readability,
+                    # SCRAPLIB.newsplease,
+                ],
+                reduce=reduce,
+            )
+            data = dict()
+            data["title"] = None
+            try:
+                data["title"] = scrap["newspaper"]["title"]
+            except: pass
+            nText = None
+            bText = None
+            try:
+                nText = scrap["newspaper"]["text"]
+                del scrap["newspaper"]["text"]
+            except: pass
+            try:
+                bText = scrap["boilerpipe"]["text"]
+                del scrap["boilerpipe"]["text"]
+            except: pass
+            if nText is None or len(nText) == 0:
+                nText = None
+            if bText is None or len(bText) == 0:
+                bText = None
+            if nText is None and bText is None:
+                data["text"] = None
+            elif nText is None:
+                data["text"] = normalizeText(bText)
+            elif bText is None:
+                data["text"] = normalizeText(nText)
+            else:
+                nText = normalizeText(nText)
+                bText = normalizeText(bText)
+                nTextOnlySentence = []
+                for line in nText.split("\n"):
+                    if len(line) > sentenceMinLength:
+                        nTextOnlySentence.append(line)
+                nTextOnlySentence = "\n".join(nTextOnlySentence)
+                bTextOnlySentence = []
+                for line in bText.split("\n"):
+                    if len(line) > sentenceMinLength:
+                        bTextOnlySentence.append(line)
+                bTextOnlySentence = "\n".join(bTextOnlySentence)
+                nTextRatio = len(nTextOnlySentence) / (len(nTextOnlySentence) + len(bTextOnlySentence))
+                bTextRatio = len(bTextOnlySentence) / (len(nTextOnlySentence) + len(bTextOnlySentence))
+                if nTextRatio > winnerMinRatio:
+                    data["text"] = nText
+                elif bTextRatio > winnerMinRatio:
+                    data["text"] = bText
+                else:
+                    if meanLinesLength(bTextOnlySentence) > meanLinesLength(nTextOnlySentence):
+                        data["text"] = bText
+                    else:
+                        data["text"] = nText
+            data = mergeDicts(data, scrap["newspaper"], scrap["boilerpipe"])
+            return data
+        except Exception as e:
+            logException(e, self)
+            return None
+
 
     def scrap(self, html, scrapLib=SCRAPLIB.newspaper, reduce=True):
         if html is None or html == "":
@@ -67,10 +181,12 @@ class NewsScraper():
                     "meta_favicon": article.meta_favicon,
                     "meta_data": article.meta_data,
                 }
+                result["text"] = normalizeText(result["text"])
             elif scrapLib == NewsScraper.SCRAPLIB.boilerpipe:
-                scraper = Extractor(extractor='ArticleExtractor', html=html)
-                scrap = scraper.getText()
-                result = {"text": scrap}
+                scraper = Extractor(extractor='ArticleExtractor', html=html) # Or ArticleSentencesExtractor
+                text = scraper.getText()
+                text = normalizeText(text)
+                result = {"text": text} # "images": scraper.getImages()
             elif scrapLib == NewsScraper.SCRAPLIB.newsplease:
                 article = NewsPlease.from_html(html)
                 result = \
@@ -111,6 +227,25 @@ class NewsScraper():
         return None
 
 # https://github.com/grangier/python-goose/zipball/master#egg=python-goose
+
+
+newsScraper = NewsScraper()
+
+def smartScrapAll(htmls):
+    global newsScraperSingleton
+    scraps = []
+    for html in htmls:
+        scraps.append(newsScraper.smartScrap(html))
+    return scraps
+
+def multiProcessingSmartScrap(htmls, parallelProcesses=cpuCount()):
+    htmlss = split(htmls, parallelProcesses)
+    pool = Pool(parallelProcesses, mapType=MAP_TYPE.multiprocessing)
+    scrapps = pool.map(smartScrapAll, htmlss)
+    scraps = []
+    for currentScraps in scrapps:
+        scraps += currentScraps
+    return scraps
 
 if __name__ == '__main__':
     from hjwebbrowser.httpbrowser import *
