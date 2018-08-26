@@ -229,23 +229,23 @@ class NewsScraper():
 # https://github.com/grangier/python-goose/zipball/master#egg=python-goose
 
 
-newsScraper = NewsScraper()
+# newsScraper = NewsScraper()
 
-def smartScrapAll(htmls):
-    global newsScraperSingleton
-    scraps = []
-    for html in htmls:
-        scraps.append(newsScraper.smartScrap(html))
-    return scraps
+# def smartScrapAll(htmls):
+#     global newsScraperSingleton
+#     scraps = []
+#     for html in htmls:
+#         scraps.append(newsScraper.smartScrap(html))
+#     return scraps
 
-def multiProcessingSmartScrap(htmls, parallelProcesses=cpuCount()):
-    htmlss = split(htmls, parallelProcesses)
-    pool = Pool(parallelProcesses, mapType=MAP_TYPE.multiprocessing)
-    scrapps = pool.map(smartScrapAll, htmlss)
-    scraps = []
-    for currentScraps in scrapps:
-        scraps += currentScraps
-    return scraps
+# def multiProcessingSmartScrap(htmls, parallelProcesses=cpuCount()):
+#     htmlss = split(htmls, parallelProcesses)
+#     pool = Pool(parallelProcesses, mapType=MAP_TYPE.multiprocessing)
+#     scrapps = pool.map(smartScrapAll, htmlss)
+#     scraps = []
+#     for currentScraps in scrapps:
+#         scraps += currentScraps
+#     return scraps
 
 if __name__ == '__main__':
     from hjwebbrowser.httpbrowser import *
