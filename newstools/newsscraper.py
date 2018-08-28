@@ -48,6 +48,8 @@ def isGoodNews(data, minTextSize=100, minMeanLineLength=8, logger=None, verbose=
         if dictContains(scrap, "scrap"):
             scrap = scrap["scrap"]
         if dictContains(scrap, "boilerpipe"):
+            # logWarning("Old scrap")
+            return False
             scrap = scrap["boilerpipe"]
         if len(scrap["text"]) < minTextSize:
             return False
