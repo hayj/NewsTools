@@ -63,7 +63,7 @@ def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbos
         for exclude in \
         [
             "subscribe to read",
-        ]
+        ]:
             if exclude in lowerTitle:
                 return False
     except Exception as e:
