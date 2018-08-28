@@ -36,7 +36,7 @@ def meanLinesLength(text):
         count += 1
     return theSum / count
 
-def isGoodNews(data, minTextSize=100, minMeanLineLength=8, logger=None, verbose=False):
+def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbose=False):
     try:
         if dictContains(data, "status") and data["status"] not in \
         [
@@ -55,8 +55,17 @@ def isGoodNews(data, minTextSize=100, minMeanLineLength=8, logger=None, verbose=
             return False
         if meanLinesLength(scrap["text"]) < minMeanLineLength:
             return False
-        if dictContains(scrap, "title") and (scrap["title"] is None or len(scrap["title"]) == 0):
+        if not dictContains(scrap, "title"):
             return False
+        if scrap["title"] is None or len(scrap["title"]) == 0:
+            return False
+        lowerTitle = scrap["title"].lower()
+        for exclude in \
+        [
+            "subscribe to read",
+        ]
+            if exclude in lowerTitle:
+                return False
     except Exception as e:
         logException(e, logger, verbose=verbose)
         return False
