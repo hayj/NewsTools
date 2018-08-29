@@ -153,8 +153,12 @@ class NewsScraper():
                     if len(line) > sentenceMinLength:
                         bTextOnlySentence.append(line)
                 bTextOnlySentence = "\n".join(bTextOnlySentence)
-                nTextRatio = len(nTextOnlySentence) / (len(nTextOnlySentence) + len(bTextOnlySentence))
-                bTextRatio = len(bTextOnlySentence) / (len(nTextOnlySentence) + len(bTextOnlySentence))
+                if len(nTextOnlySentence) + len(bTextOnlySentence) == 0:
+                    nTextRatio = 0.5
+                    bTextRatio = 0.5
+                else:
+                    nTextRatio = len(nTextOnlySentence) / (len(nTextOnlySentence) + len(bTextOnlySentence))
+                    bTextRatio = len(bTextOnlySentence) / (len(nTextOnlySentence) + len(bTextOnlySentence))
                 if nTextRatio > winnerMinRatio:
                     data["text"] = nText
                 elif bTextRatio > winnerMinRatio:
