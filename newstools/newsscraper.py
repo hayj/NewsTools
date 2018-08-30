@@ -36,6 +36,9 @@ def meanLinesLength(text):
         count += 1
     return theSum / count
 
+
+
+
 def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbose=False):
     try:
         if dictContains(data, "status") and data["status"] not in \
@@ -53,7 +56,7 @@ def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbos
             scrap = scrap["boilerpipe"]
         if not dictContains(scrap, "text") or not dictContains(scrap, "title"):
             return False
-        if len(scrap["text"]) < minTextSize:
+        if len(scrap["text"]) < minTextLength:
             return False
         if meanLinesLength(scrap["text"]) < minMeanLineLength:
             return False
@@ -70,6 +73,8 @@ def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbos
         logException(e, logger, verbose=verbose)
         return False
     return True
+
+
 
 class NewsScraper():
     # goose doesn't work
