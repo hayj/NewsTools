@@ -51,20 +51,20 @@ def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbos
             # logWarning("Old scrap")
             return False
             scrap = scrap["boilerpipe"]
+        if not dictContains(scrap, "text") or not dictContains(scrap, "title"):
+            return False
         if len(scrap["text"]) < minTextSize:
             return False
         if meanLinesLength(scrap["text"]) < minMeanLineLength:
             return False
-        if not dictContains(scrap, "title"):
+        if len(scrap["title"]) == 0:
             return False
-        if scrap["title"] is None or len(scrap["title"]) == 0:
-            return False
-        lowerTitle = scrap["title"].lower()
+        loweredTitle = scrap["title"].lower()
         for exclude in \
         [
             "subscribe to read",
         ]:
-            if exclude in lowerTitle:
+            if exclude in loweredTitle:
                 return False
     except Exception as e:
         logException(e, logger, verbose=verbose)
