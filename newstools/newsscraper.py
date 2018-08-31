@@ -36,11 +36,10 @@ def meanLinesLength(text):
         count += 1
     return theSum / count
 
-
-
-
-def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbose=False):
+def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbose=True):
     try:
+        if data is None:
+            return False
         if dictContains(data, "status") and data["status"] not in \
         [
             "timeoutWithContent",
