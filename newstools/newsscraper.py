@@ -173,6 +173,24 @@ class NewsScraper():
                         data["text"] = bText
                     else:
                         data["text"] = nText
+            # print(data["title"])
+            if dictContains(data, "title"):
+                data["title"] = magicNormalizeText(data["title"])
+            if dictContains(data, "title") and dictContains(data, "text"):
+                if data["text"].startswith(data["title"]) and len(data["text"]) > len(data["title"]):
+                    # print("-" * 50)
+                    # print(data["text"][0:200])
+                    # print("-")
+                    # print(data["title"][0:200])
+                    # print("\n" * 2)
+                    data["text"] = data["text"][len(data["title"]):].strip()
+                    # input()
+                    # print(data["text"][0:200])
+                    # print("-")
+                    # print(data["title"][0:200])
+                    # print("-" * 50)
+                    # input()
+
             data = mergeDicts(data, scrap["newspaper"], scrap["boilerpipe"])
             return data
         except Exception as e:
@@ -207,8 +225,6 @@ class NewsScraper():
                 text = scraper.getText()
                 text = magicNormalizeText(text)
                 result = {"text": text} # "images": scraper.getImages()
-                print("TODO TODO TODO TODO TODO TODO TODO TODO ")
-                
             elif scrapLib == NewsScraper.SCRAPLIB.newsplease:
                 article = NewsPlease.from_html(html)
                 result = \
