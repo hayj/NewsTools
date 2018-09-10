@@ -10,6 +10,7 @@ from datatools.csvreader import *
 from systemtools.file import *
 from systemtools.location import *
 from systemtools.system import *
+from nlptools.basics import *
 import random
 from enum import Enum
 from boilerpipe.extract import Extractor
@@ -19,13 +20,13 @@ from datatools.htmltools import *
 # from readability import Document # To delete
 from datastructuretools.processing import *
 
-def normalizeText(text):
-    if text is None or len(text) == 0:
-        return None
-    if text.count('<') > 5 and text.count('>') > 5:
-        text = html2Text(text)
-    text = reduceBlank(text, keepNewLines=True)
-    return text
+# def normalizeTextScraper(text):
+#     if text is None or len(text) == 0:
+#         return None
+#     if text.count('<') > 5 and text.count('>') > 5:
+#         text = html2Text(text)
+#     text = reduceBlank(text, keepNewLines=True)
+#     return text
 
 def meanLinesLength(text):
     lines = text.split("\n")
@@ -141,12 +142,12 @@ class NewsScraper():
             if nText is None and bText is None:
                 data["text"] = None
             elif nText is None:
-                data["text"] = normalizeText(bText)
+                data["text"] = bText
             elif bText is None:
-                data["text"] = normalizeText(nText)
+                data["text"] = nText
             else:
-                nText = normalizeText(nText)
-                bText = normalizeText(bText)
+                nText = nText
+                bText = bText
                 nTextOnlySentence = []
                 for line in nText.split("\n"):
                     if len(line) > sentenceMinLength:
@@ -200,12 +201,14 @@ class NewsScraper():
                     "meta_favicon": article.meta_favicon,
                     "meta_data": article.meta_data,
                 }
-                result["text"] = normalizeText(result["text"])
+                result["text"] = magicNormalizeText(result["text"])
             elif scrapLib == NewsScraper.SCRAPLIB.boilerpipe:
                 scraper = Extractor(extractor='ArticleExtractor', html=html) # Or ArticleSentencesExtractor
                 text = scraper.getText()
-                text = normalizeText(text)
+                text = magicNormalizeText(text)
                 result = {"text": text} # "images": scraper.getImages()
+                print("TODO TODO TODO TODO TODO TODO TODO TODO ")
+                
             elif scrapLib == NewsScraper.SCRAPLIB.newsplease:
                 article = NewsPlease.from_html(html)
                 result = \
