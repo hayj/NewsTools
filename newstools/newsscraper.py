@@ -95,6 +95,7 @@ class NewsScraper():
             # SCRAPLIB.readability,
             # SCRAPLIB.newsplease,
         ],
+        reduceNone=True,
         **kwargs
     ):
         if scrapLibs is None:
@@ -102,7 +103,7 @@ class NewsScraper():
         scrap = {}
         for current in scrapLibs:
             currentScrap = self.scrap(*args, scrapLib=current, **kwargs)
-            if currentScrap is not None:
+            if (not reduceNone) or (currentScrap is not None):
                 scrap = {**scrap, **{current.name: currentScrap}}
         return scrap
 
@@ -118,6 +119,7 @@ class NewsScraper():
                     # SCRAPLIB.readability,
                     # SCRAPLIB.newsplease,
                 ],
+                reduceNone=False,
                 reduce=reduce,
             )
             data = dict()
@@ -195,7 +197,7 @@ class NewsScraper():
             return data
         except Exception as e:
             logException(e, self)
-            return None
+            return {"text": None, "title": None}
 
 
     def scrap(self, html, scrapLib=SCRAPLIB.newspaper, reduce=True):
@@ -262,6 +264,7 @@ class NewsScraper():
             return result
         except Exception as e:
             logException(e, self, location="scrap(self, scrapLib=SCRAPLIB.newspaper)")
+        # return {"text": None, "title": None}
         return None
 
 # https://github.com/grangier/python-goose/zipball/master#egg=python-goose

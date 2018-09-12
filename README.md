@@ -61,4 +61,3 @@ Then you can use `isNews` method:
 You can get all news domains using:
 
 	nuf.newsDomains
-
