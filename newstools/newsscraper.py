@@ -16,6 +16,8 @@ from enum import Enum
 from boilerpipe.extract import Extractor
 import html2text
 from datatools.htmltools import *
+from nlptools.langrecognizer import isEn
+from nlptools.preprocessing import *
 # from newsplease import NewsPlease # To delete
 # from readability import Document # To delete
 from datastructuretools.processing import *
@@ -37,7 +39,7 @@ def meanLinesLength(text):
         count += 1
     return theSum / count
 
-def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbose=True):
+def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbose=True, checkEn=True):
     try:
         if data is None:
             return False
@@ -60,6 +62,9 @@ def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbos
             return False
         if meanLinesLength(scrap["text"]) < minMeanLineLength:
             return False
+        if checkEn and not isEn(scrap["text"]):
+            logError("\n" * 2 + "-" * 20 + "This news is not in english:\n" + lts(reduceDictStr(data, max=150)) + "-" * 20 + "\n" * 2, logger=logger, verbose=verbose)
+            # return False
         if len(scrap["title"]) == 0:
             return False
         loweredTitle = scrap["title"].lower()
@@ -177,7 +182,7 @@ class NewsScraper():
                         data["text"] = nText
             # print(data["title"])
             if dictContains(data, "title"):
-                data["title"] = magicNormalizeText(data["title"])
+                data["title"] = softPreprocess(data["title"])
             if dictContains(data, "title") and dictContains(data, "text"):
                 if data["text"].startswith(data["title"]) and len(data["text"]) > len(data["title"]):
                     # print("-" * 50)
@@ -221,11 +226,11 @@ class NewsScraper():
                     "meta_favicon": article.meta_favicon,
                     "meta_data": article.meta_data,
                 }
-                result["text"] = magicNormalizeText(result["text"])
+                result["text"] = softPreprocess(result["text"])
             elif scrapLib == NewsScraper.SCRAPLIB.boilerpipe:
                 scraper = Extractor(extractor='ArticleExtractor', html=html) # Or ArticleSentencesExtractor
                 text = scraper.getText()
-                text = magicNormalizeText(text)
+                text = softPreprocess(text)
                 result = {"text": text} # "images": scraper.getImages()
             elif scrapLib == NewsScraper.SCRAPLIB.newsplease:
                 article = NewsPlease.from_html(html)
