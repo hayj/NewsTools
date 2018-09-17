@@ -53,9 +53,8 @@ def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbos
         if dictContains(scrap, "scrap"):
             scrap = scrap["scrap"]
         if dictContains(scrap, "boilerpipe"):
-            # logWarning("Old scrap")
+            logWarning("Old scrap")
             return False
-            scrap = scrap["boilerpipe"]
         if not dictContains(scrap, "text") or not dictContains(scrap, "title"):
             return False
         if len(scrap["text"]) < minTextLength:
@@ -63,14 +62,15 @@ def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbos
         if meanLinesLength(scrap["text"]) < minMeanLineLength:
             return False
         if checkEn and not isEn(scrap["text"]):
-            logError("\n" * 2 + "-" * 20 + "This news is not in english:\n" + lts(reduceDictStr(data, max=150)) + "-" * 20 + "\n" * 2, logger=logger, verbose=verbose)
-            # return False
+            # logError("\n" * 2 + "-" * 20 + "This news is not in english:\n" + lts(reduceDictStr(data, max=150)) + "-" * 20 + "\n" * 2, logger=logger, verbose=verbose)
+            return False
         if len(scrap["title"]) == 0:
             return False
         loweredTitle = scrap["title"].lower()
         for exclude in \
         [
             "subscribe to read",
+            "404",
         ]:
             if exclude in loweredTitle:
                 return False
