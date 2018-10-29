@@ -30,6 +30,31 @@ from datastructuretools.processing import *
 #     text = reduceBlank(text, keepNewLines=True)
 #     return text
 
+def parseAuthors(author):
+    """
+        This function parse a string to extract a list of authors
+    """
+    if author is None:
+        return None
+    if len(author) < 4:
+        return [author]
+    author = softPreprocess(author)
+    if author is None or len(author) == 0:
+        return None
+    separationToken = "__A_N_D__"
+    authors = author.replace("and ", separationToken)
+    authors = authors.replace(",", separationToken)
+    authors = authors.split(separationToken)
+    u = 0
+    newAuthors = []
+    for currentAuthor in authors:
+        currentAuthor = currentAuthor.strip()
+        if len(currentAuthor) > 0:
+            newAuthors.append(currentAuthor)
+        u += 1
+    authors = newAuthors
+    return authors
+
 def meanLinesLength(text):
     lines = text.split("\n")
     theSum = 0
@@ -39,7 +64,7 @@ def meanLinesLength(text):
         count += 1
     return theSum / count
 
-def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbose=True, checkEn=True):
+def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbose=True, checkEn=True, checkTitle=True):
     try:
         if data is None:
             return False
@@ -55,7 +80,7 @@ def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbos
         if dictContains(scrap, "boilerpipe"):
             logWarning("Old scrap")
             return False
-        if not dictContains(scrap, "text") or not dictContains(scrap, "title"):
+        if not dictContains(scrap, "text") or (checkTitle and not dictContains(scrap, "title")):
             return False
         if len(scrap["text"]) < minTextLength:
             return False
@@ -64,16 +89,17 @@ def isGoodNews(data, minTextLength=100, minMeanLineLength=8, logger=None, verbos
         if checkEn and not isEn(scrap["text"]):
             # logError("\n" * 2 + "-" * 20 + "This news is not in english:\n" + lts(reduceDictStr(data, max=150)) + "-" * 20 + "\n" * 2, logger=logger, verbose=verbose)
             return False
-        if len(scrap["title"]) == 0:
+        if checkTitle and len(scrap["title"]) == 0:
             return False
-        loweredTitle = scrap["title"].lower()
-        for exclude in \
-        [
-            "subscribe to read",
-            "404",
-        ]:
-            if exclude in loweredTitle:
-                return False
+        if checkTitle:
+            loweredTitle = scrap["title"].lower()
+            for exclude in \
+            [
+                "subscribe to read",
+                "404",
+            ]:
+                if exclude in loweredTitle:
+                    return False
     except Exception as e:
         logException(e, logger, verbose=verbose)
         return False
@@ -293,15 +319,25 @@ class NewsScraper():
 #         scraps += currentScraps
 #     return scraps
 
+def testParseAuthors():
+    print(parseAuthors("àuds0 and ooirg"))
+    print(parseAuthors("àuds0, ooirgçà jhbsdf à"))
+    print(parseAuthors(", ooirgçà jhbsdf à and"))
+    print(parseAuthors("""
+        dsgs
+        anddsf
+        , ooirgçà and jhbsdf à and"""))
+
 if __name__ == '__main__':
-    from hjwebbrowser.httpbrowser import *
-    b = HTTPBrowser(pageLoadTimeout=20)
-    html = b.get("https://fr.wikipedia.org/wiki/Grand_veneur_de_France")["html"]
-    # print({**None, **{"t": 1}})
-    # html = fileToStr(getExecDirectory() + "/data-test/bbc-cookie.html")
-    ns = NewsScraper()
-    # scrap = ns.scrap(scrapLib=NewsScraper.SCRAPLIB.readability)
-    scrap = ns.scrapAll(html)
-    print(listToStr(scrap))
+    testParseAuthors()
+    # from hjwebbrowser.httpbrowser import *
+    # b = HTTPBrowser(pageLoadTimeout=20)
+    # html = b.get("https://fr.wikipedia.org/wiki/Grand_veneur_de_France")["html"]
+    # # print({**None, **{"t": 1}})
+    # # html = fileToStr(getExecDirectory() + "/data-test/bbc-cookie.html")
+    # ns = NewsScraper()
+    # # scrap = ns.scrap(scrapLib=NewsScraper.SCRAPLIB.readability)
+    # scrap = ns.scrapAll(html)
+    # print(listToStr(scrap))
 
 
