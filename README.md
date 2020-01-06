@@ -64,7 +64,7 @@ You can get all news domains using:
 
 # Good Article Tool
 
-This tool is a predictor to filter news dataset, it allow you to assess wether a text is a good article or not (according to he format...).
+This tool is a predictor to filter news dataset, it allow you to assess wether a text is a good article or not (according to some features: enough long content, few advertisements, few menus, correct encoding, enough well-formed sentences...).
 
 First import the tool:
 
